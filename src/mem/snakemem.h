@@ -12,7 +12,9 @@ private:
 public:
 	SnakeMem(const char* processName);
 
-	uintptr_t ReadPointer(uintptr_t base, std::vector<unsigned int> offsets);
+	uintptr_t ReadPointer(uintptr_t base, unsigned int offset);
+
+	uintptr_t ReadPointers(uintptr_t base, const std::vector<unsigned int>& offsets);
 
 	DWORD GetProcessId();
 	HANDLE GetProcessHandle();

@@ -38,14 +38,28 @@ SnakeMem::SnakeMem(const char* processName) {
     CloseHandle(hProcessSnap);
 }
 
-uintptr_t SnakeMem::ReadPointer(uintptr_t base, std::vector<unsigned int> offsets) {
+// Читает указатель с одиночным смещением
+uintptr_t SnakeMem::ReadPointer(uintptr_t base, unsigned int offset) {
+    uintptr_t addr = base;
+    if (!ReadProcessMemory(this->hProcess, (BYTE*)addr, &addr, sizeof(addr), nullptr)) {
+        return 0; // Ошибка чтения
+    }
+    return addr + offset;
+}
+
+// Читает указатель с цепочкой смещений
+uintptr_t SnakeMem::ReadPointers(uintptr_t base, const std::vector<unsigned int>& offsets) {
     uintptr_t addr = base;
     for (unsigned int offset : offsets) {
-        ReadProcessMemory(this->hProcess, (BYTE*)addr, &addr, sizeof(addr), 0);
+        if (!ReadProcessMemory(this->hProcess, (BYTE*)addr, &addr, sizeof(addr), nullptr)) {
+            return 0; // Ошибка чтения
+        }
         addr += offset;
     }
     return addr;
 }
+
+
 
 DWORD SnakeMem::GetProcessId() {
     HANDLE hProcessSnap;
