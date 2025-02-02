@@ -12,7 +12,7 @@ private:
 public:
 	SnakeMem(const char* processName);
 
-	uintptr_t ReadPointer(uintptr_t base, unsigned int offset);
+	uintptr_t ReadPointer(uintptr_t base, DWORD offset);
 
 	uintptr_t ReadPointers(uintptr_t base, const std::vector<unsigned int>& offsets);
 
@@ -21,13 +21,15 @@ public:
 	uintptr_t GetModuleAddress(const char* module);
 
 	template <typename T>
-	bool WriteMemory(LPVOID address, T value) {
-		return WriteProcessMemory(hProcess, address, &value, sizeof(T), nullptr);
+	bool Write(uintptr_t address, T value) {
+		return WriteProcessMemory(hProcess, (LPVOID)address, &value, sizeof(T), nullptr);
 	}
 
 	template <typename T>
-	bool ReadMemory(LPVOID address, T& value) {
-		return ReadProcessMemory(hProcess, address, &value, sizeof(T), nullptr);
+	T Read(uintptr_t address) {
+		T buffer;
+		ReadProcessMemory(hProcess, (LPCVOID)address, &buffer, sizeof(T), nullptr);
+		return buffer;
 	}
 
 };

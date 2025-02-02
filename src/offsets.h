@@ -9,6 +9,7 @@ namespace offsets {
 		constexpr std::ptrdiff_t m_iHealth = 0x344; // int32
 		constexpr std::ptrdiff_t m_iIDEntIndex = 0x1458; // CEntityIndex
 		constexpr std::ptrdiff_t m_iTeamNum = 0x3E3; // uint8
+		constexpr std::ptrdiff_t m_hPawn = 0x62C; // CHandle<C_BasePlayerPawn>
 	}
 
 	namespace buttons {
