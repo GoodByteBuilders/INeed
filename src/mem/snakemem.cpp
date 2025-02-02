@@ -1,12 +1,19 @@
 #include "snakemem.h"
 #include <iostream>
 #include <tlhelp32.h>
+#include <windows.h>
 
 SnakeMem::SnakeMem(const char* processName) {
     HANDLE hProcessSnap;
     PROCESSENTRY32 pe32;
     this->processId = 0;
     this->hProcess = NULL;
+    this->processName = processName;
+
+    std::string processNameStr(processName);
+    if (processNameStr.find(".exe") == std::string::npos) {
+        processNameStr += ".exe";
+    }
 
     hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (hProcessSnap == INVALID_HANDLE_VALUE) {
@@ -21,7 +28,7 @@ SnakeMem::SnakeMem(const char* processName) {
     }
 
     do {
-        if (strcmp(pe32.szExeFile, processName) == 0) {
+        if (strcmp(pe32.szExeFile, processNameStr.c_str()) == 0) {
             this->processId = pe32.th32ProcessID;
             this->hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, this->processId);
             break;
@@ -31,8 +38,48 @@ SnakeMem::SnakeMem(const char* processName) {
     CloseHandle(hProcessSnap);
 }
 
-DWORD SnakeMem::GetProcessId() const {
-    return this->processId;
+uintptr_t SnakeMem::ReadPointer(uintptr_t base, std::vector<unsigned int> offsets) {
+    uintptr_t addr = base;
+    for (unsigned int offset : offsets) {
+        ReadProcessMemory(this->hProcess, (BYTE*)addr, &addr, sizeof(addr), 0);
+        addr += offset;
+    }
+    return addr;
+}
+
+DWORD SnakeMem::GetProcessId() {
+    HANDLE hProcessSnap;
+    PROCESSENTRY32 pe32;
+    this->processId = 0;
+    this->hProcess = NULL;
+
+    std::string processNameStr(this->processName);
+    if (processNameStr.find(".exe") == std::string::npos) {
+        processNameStr += ".exe";
+    }
+
+    hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hProcessSnap == INVALID_HANDLE_VALUE) {
+        return 0;
+    }
+
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+
+    if (!Process32First(hProcessSnap, &pe32)) {
+        CloseHandle(hProcessSnap);
+        return 0;
+    }
+
+    do {
+        if (strcmp(pe32.szExeFile, processNameStr.c_str()) == 0) {
+            this->processId = pe32.th32ProcessID;
+            this->hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, this->processId);
+            break;
+        }
+    } while (Process32Next(hProcessSnap, &pe32));
+
+    CloseHandle(hProcessSnap);
+    return 0;
 }
 
 HANDLE SnakeMem::GetProcessHandle() {

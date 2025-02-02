@@ -1,16 +1,20 @@
 #pragma once
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <vector>
 
 class SnakeMem {
 private:
 	DWORD processId = NULL;
 	HANDLE hProcess = INVALID_HANDLE_VALUE;
+	const char* processName;
 
 public:
 	SnakeMem(const char* processName);
 
-	DWORD GetProcessId() const;
+	uintptr_t ReadPointer(uintptr_t base, std::vector<unsigned int> offsets);
+
+	DWORD GetProcessId();
 	HANDLE GetProcessHandle();
 	uintptr_t GetModuleAddress(const char* module);
 
@@ -23,4 +27,5 @@ public:
 	bool ReadMemory(LPVOID address, T& value) {
 		return ReadProcessMemory(hProcess, address, &value, sizeof(T), nullptr);
 	}
+
 };
