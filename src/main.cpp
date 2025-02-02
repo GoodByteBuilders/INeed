@@ -3,6 +3,6 @@
 #include "mem/snakemem.h"
 
 int main() {
-
-	return 0;
+    SnakeMem mem("cs2.exe");
+    return 0;
 }
